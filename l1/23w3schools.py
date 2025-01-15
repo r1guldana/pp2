@@ -1,0 +1,10 @@
+a = int(1)   #  1
+b = int(2.8) # 2
+c = int("3") # 3
+x = float(1)     # 1.0
+y = float(2.8)   #2.8
+z = float("3")   # 3.0
+w = float("4.2") # 4.2
+s = str("s1") # 's1's
+t = str(2)    # '2'
+u = str(3.0)  # '3.0'
