@@ -1,0 +1,16 @@
+thislist = ["apple", "banana", "cherry", "banana", "kiwi"]
+
+thislist.remove("banana")#removes the first occurrence
+print(thislist)
+
+thislist.pop(1)
+print(thislist)
+
+thislist.pop()
+print(thislist) #removes the last item
+
+del thislist[0]
+print(thislist)
+
+thislist.clear()
+print(thislist)

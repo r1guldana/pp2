@@ -1,0 +1,11 @@
+thislist = ["apple", "banana", "cherry"]
+thislist.append("orange")
+print(thislist)
+thislist.insert(1, "orange")
+print(thislist)
+tropical = ["mango", "pineapple", "papaya"]
+thislist.extend(tropical) #add elements of tropical
+print(thislist)
+thistuple = ("kiwi", "orange")
+thislist.extend(thistuple)#you can add any iterable object (tuples, sets, dictionaries,...)
+print(thislist)
