@@ -1,0 +1,131 @@
+import pygame
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((640, 480))
+    clock = pygame.time.Clock()
+
+    radius = 15
+    x, y = 0, 0
+    mode = 'blue'
+    draw_mode = 'line'
+    points = []
+    figures = []  # Список для хранения фигур
+
+    #кнопки
+    buttons = {
+        "Draw Rect": pygame.Rect(10, 10, 120, 40),
+        "Draw Circle": pygame.Rect(140, 10, 120, 40),
+        "Eraser": pygame.Rect(270, 10, 120, 40),
+        "Color": pygame.Rect(400, 10, 120, 40)
+    }
+
+    start_pos = None  #позиция
+
+    while True:
+        pressed = pygame.key.get_pressed()
+        alt_held = pressed[pygame.K_LALT] or pressed[pygame.K_RALT]
+        ctrl_held = pressed[pygame.K_LCTRL] or pressed[pygame.K_RCTRL]
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w and ctrl_held:
+                    return
+                if event.key == pygame.K_F4 and alt_held:
+                    return
+                if event.key == pygame.K_ESCAPE:
+                    return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+
+                # Проверка
+                for btn_text, btn_rect in buttons.items():
+                    if btn_rect.collidepoint(x, y):
+                        if btn_text == "Color":
+                            mode = 'red' if mode == 'blue' else 'blue'
+                        else:
+                            draw_mode = btn_text.lower().replace(" ", "_")
+                        break
+                else:
+                    start_pos = (x, y) 
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if start_pos:
+                    x, y = pygame.mouse.get_pos()
+                    if draw_mode == "draw_rect":
+                        rect = pygame.Rect(*start_pos, x - start_pos[0], y - start_pos[1])
+                        figures.append(("rect", rect))  #прямоугольник
+                    elif draw_mode == "draw_circle":
+                        radius = max(abs(x - start_pos[0]), abs(y - start_pos[1])) // 2
+                        center = ((x + start_pos[0]) // 2, (y + start_pos[1]) // 2)
+                        figures.append(("circle", center, radius))  #круг
+                    start_pos = None  
+
+            elif event.type == pygame.MOUSEMOTION:
+                if draw_mode == "line" and start_pos:
+                    points.append(event.pos)
+                    points = points[-256:] 
+
+        screen.fill((255, 255, 255))
+
+        # кнопки
+        for text, rect in buttons.items():
+            pygame.draw.rect(screen, (200, 200, 200), rect)
+            font = pygame.font.Font(None, 30)
+            text_surf = font.render(text, True, (0, 0, 0))
+            screen.blit(text_surf, (rect.x + 10, rect.y + 10))
+
+        # Отрисовка линий
+        if draw_mode == "line":
+            for i in range(len(points) - 1):
+                drawLineBetween(screen, i, points[i], points[i + 1], radius, mode)
+
+        # Отрисовка сохраненных фигур
+        for figure in figures:
+            if figure[0] == "rect":
+                pygame.draw.rect(screen, (0, 0, 0), figure[1], 2)
+            elif figure[0] == "circle":
+                pygame.draw.circle(screen, (0, 0, 0), figure[1], figure[2], 2)
+
+        # Рисование фигуры 
+        if start_pos:
+            x, y = pygame.mouse.get_pos()
+            if draw_mode == "draw_rect":
+                rect = pygame.Rect(*start_pos, x - start_pos[0], y - start_pos[1])
+                pygame.draw.rect(screen, (0, 0, 0), rect, 2)
+            elif draw_mode == "draw_circle":
+                radius = max(abs(x - start_pos[0]), abs(y - start_pos[1])) // 2
+                center = ((x + start_pos[0]) // 2, (y + start_pos[1]) // 2)
+                pygame.draw.circle(screen, (0, 0, 0), center, radius, 2)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+def drawLineBetween(screen, index, start, end, width, color_mode):
+    c1 = max(0, min(255, 2 * index - 256))
+    c2 = max(0, min(255, 2 * index))
+
+    if color_mode == 'blue':
+        color = (c1, c1, c2)
+    elif color_mode == 'red':
+        color = (c2, c1, c1)
+    elif color_mode == 'green':
+        color = (c1, c2, c1)
+    elif color_mode == 'eraser':
+        color = (255, 255, 255)  # Белый цвет
+
+    dx = start[0] - end[0]
+    dy = start[1] - end[1]
+    iterations = max(abs(dx), abs(dy))
+
+    for i in range(iterations):
+        progress = 1.0 * i / iterations
+        aprogress = 1 - progress
+        x = int(aprogress * start[0] + progress * end[0])
+        y = int(aprogress * start[1] + progress * end[1])
+        pygame.draw.circle(screen, color, (x, y), width)
+
+main()

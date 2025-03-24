@@ -1,0 +1,125 @@
+import pygame
+import random
+
+# Colors
+blue = (50, 153, 213)
+black = (0, 0, 0)
+red = (213, 50, 80)
+white = (255, 255, 255)
+
+# screen 
+width = 600
+height = 400
+snake_block = 10
+
+# open pygame
+pygame.init()
+display = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
+
+# count csore and level
+score = 0
+level = 1
+speed = 10  # speed snake
+
+# walls
+walls = [(x, 0) for x in range(0, width, snake_block)] + [(x, height - snake_block) for x in range(0, width, snake_block)]
+walls += [(0, y) for y in range(0, height, snake_block)] + [(width - snake_block, y) for y in range(0, height, snake_block)]
+
+# ganerete snake and food for snake random
+def snake_food(snake_list):
+    while True:
+        food = (random.randint(0, (width // snake_block) - 1) * snake_block, 
+                random.randint(0, (height // snake_block) - 1) * snake_block)
+        if food not in snake_list and food not in walls:
+            return food
+
+def main():
+    global score, level, speed
+    game_over = False
+    x1 = width / 2
+    y1 = height / 2
+
+    x1_change = 0
+    y1_change = 0
+
+    lst = []
+    length = 1
+    food = snake_food(lst)
+    
+    while not game_over:
+        display.fill(blue)
+        
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_over = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT and x1_change == 0:
+                    x1_change = -snake_block
+                    y1_change = 0
+                elif event.key == pygame.K_RIGHT and x1_change == 0:
+                    x1_change = snake_block
+                    y1_change = 0
+                elif event.key == pygame.K_UP and y1_change == 0:
+                    y1_change = -snake_block
+                    x1_change = 0
+                elif event.key == pygame.K_DOWN and y1_change == 0:
+                    y1_change = snake_block
+                    x1_change = 0
+        
+        x1 += x1_change
+        y1 += y1_change
+
+        # Check 
+        if (x1, y1) in walls or x1 < 0 or x1 >= width or y1 < 0 or y1 >= height:
+            game_over = True
+
+        # Draw walls
+        for wall in walls:
+            pygame.draw.rect(display, black, [wall[0], wall[1], snake_block, snake_block])
+        
+        # Draw food
+        pygame.draw.rect(display, red, [food[0], food[1], snake_block, snake_block])
+        
+        # Snake mechanics
+        snake_head = [x1, y1]
+        lst.append(snake_head)
+        if len(lst) > length:
+            del lst[0]
+        
+        # Check self-collision
+        if snake_head in lst[:-1]:
+            game_over = True
+        
+        # Draw snake
+        prnt_snake(snake_block, lst)
+        
+        # Check if food is eaten
+        if (x1, y1) == food:
+            score += 1
+            food = snake_food(lst)
+            length += 1
+            
+            # Increase level and speed every 3 points
+            if score % 3 == 0:
+                level += 1
+                speed += 2
+        
+        # Display score and level
+        font = pygame.font.SysFont(None, 30)
+        score_text = font.render(f"Score: {score}", True, white)
+        level_text = font.render(f"Level: {level}", True, white)
+        display.blit(score_text, (10, 10))
+        display.blit(level_text, (10, 40))
+        
+        pygame.display.update()
+        clock.tick(speed)
+    
+    pygame.quit()
+
+def prnt_snake(snake_block, snake_list):
+    for x in snake_list:
+        pygame.draw.rect(display, black, [x[0], x[1], snake_block, snake_block])
+
+main()
