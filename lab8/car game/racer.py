@@ -21,6 +21,7 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load("car game\enemy.webp".replace("\\",os.sep))
+        self.image = pygame.transform.scale(self.image, (80, 160)) 
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, scrn_width - 40), 0)
 
@@ -56,6 +57,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load("car game\player.jpg".replace("\\",os.sep))
+        self.image = pygame.transform.scale(self.image, (80, 160)) 
         self.rect = self.image.get_rect()
         self.rect.center = (160, 700)
 
@@ -105,7 +107,10 @@ while True: #start game
     #count score
     score_text = font.render(f"Score: {score}", True, (0, 0, 0))
     disp.blit(score_text, (500, 510))
-
+    if player1.rect.colliderect(player2.rect):
+        print("Game Over!") 
+        pygame.quit()
+        exit() 
     pygame.display.update()
 
     FramePerSec.tick(FPS)
