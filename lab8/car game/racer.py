@@ -1,3 +1,4 @@
+import os
 import pygame
 import random
 from pygame.locals import *
@@ -19,7 +20,7 @@ pygame.display.set_caption("Game")
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("enemy.webp")
+        self.image = pygame.image.load("car game\enemy.webp".replace("\\",os.sep))
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, scrn_width - 40), 0)
 
@@ -36,7 +37,7 @@ class Enemy(pygame.sprite.Sprite):
 class Coin(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("coin.jpg")
+        self.image = pygame.image.load("car game\coin.jpg".replace("\\",os.sep))
         self.image = pygame.transform.scale(self.image, (50, 50))
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, scrn_width - 90), 0)
@@ -54,7 +55,7 @@ class Coin(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("player.jpg")
+        self.image = pygame.image.load("car game\player.jpg".replace("\\",os.sep))
         self.rect = self.image.get_rect()
         self.rect.center = (160, 700)
 

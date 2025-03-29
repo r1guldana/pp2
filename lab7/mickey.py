@@ -3,15 +3,16 @@ import time
 
 pygame.init()
 
-width, height = 400, 400
+width, height = 700, 700
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Mickey Clock")
 
-background = pygame.image.load("mickeyclock.png").convert()
+background = pygame.image.load("clock.png").convert()
 
 background = pygame.transform.scale(background, (width, height))
 
-hands = pygame.image.load("mickeyhand-removebg-preview.png").convert_alpha()
+hand1= pygame.image.load("leftarm.png").convert_alpha()
+hand2 = pygame.image.load("rightarm.png").convert_alpha()
 
 center = (width // 2, height // 2)
 
@@ -30,8 +31,8 @@ while running:
     seconds_angle = (seconds / 60) * 360 - 90
     minutes_angle = (minutes / 60) * 360 - 90
 
-    seconds_hands = pygame.transform.rotate(hands, -seconds_angle)
-    minutes_hands = pygame.transform.rotate(hands, -minutes_angle)
+    seconds_hands = pygame.transform.rotate(hand1, -seconds_angle)
+    minutes_hands = pygame.transform.rotate(hand2, -minutes_angle)
 
     screen.blit(background, (0, 0))
     screen.blit(minutes_hands, minutes_hands.get_rect(center=center))
