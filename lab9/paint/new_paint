@@ -1,0 +1,193 @@
+import pygame
+import math
+
+def drawLineBetween(screen, start, end, width, color):
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    dist = math.sqrt(dx**2 + dy**2)
+    if dist == 0:
+        return
+
+    iterations = max(abs(dx), abs(dy))
+    for i in range(iterations):
+        progress = 1.0 * i / iterations
+        aprogress = 1 - progress
+        x = int(aprogress * start[0] + progress * end[0])
+        y = int(aprogress * start[1] + progress * end[1])
+        pygame.draw.circle(screen, color, (x, y), width)
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((740, 520)) # Увеличиваем размер окна для новых кнопок
+    pygame.display.set_caption("Pygame Painter")
+    clock = pygame.time.Clock()
+
+    brush_radius = 5  # Начальный радиус кисти
+    x, y = 0, 0
+    mode = 'blue'
+    draw_mode = 'line'
+
+    points = []
+    figures = []
+    # Список для хранения фигур
+
+    # Кнопки
+    buttons = {
+        "Line": pygame.Rect(10, 10, 80, 40),
+        "Rect": pygame.Rect(100, 10, 80, 40),
+        "Circle": pygame.Rect(190, 10, 80, 40),
+        "Square": pygame.Rect(280, 10, 80, 40),      
+        "TriangleRT": pygame.Rect(370, 10, 120, 40), 
+        "TriangleEQ": pygame.Rect(500, 10, 120, 40), 
+        "Rhombus": pygame.Rect(630, 10, 100, 40),   
+        "Eraser": pygame.Rect(10, 60, 80, 40),
+        "Color": pygame.Rect(100, 60, 80, 40),
+        "Size +": pygame.Rect(190, 60, 50, 40),
+        "Size -": pygame.Rect(250, 60, 50, 40)
+    }
+
+    start_pos = None  # Позиция
+
+    while True:
+        pressed = pygame.key.get_pressed()
+        alt_held = pressed[pygame.K_LALT] or pressed[pygame.K_RALT]
+        ctrl_held = pressed[pygame.K_LCTRL] or pressed[pygame.K_RCTRL]
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w and ctrl_held:
+                    return
+                if event.key == pygame.K_F4 and alt_held:
+                    return
+                if event.key == pygame.K_ESCAPE:
+                    return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+
+                # Проверка кнопок
+                for btn_text, btn_rect in buttons.items():
+                    if btn_rect.collidepoint(x, y):
+                        if btn_text == "Color":
+                            if mode == 'blue':
+                                mode = 'red'
+                            elif mode == 'red':
+                                mode = 'green'
+                            else:
+                                mode = 'blue'
+                        elif btn_text == "Size +":
+                            brush_radius += 1  # Увеличение размера кисти
+                        elif btn_text == "Size -":
+                            brush_radius = max(1, brush_radius - 1)  # Уменьшение размера кисти, но не меньше 1
+                        else:
+                            draw_mode = btn_text.lower().replace(" ", "_")
+                        break
+                else:
+                    start_pos = (x, y)
+                    points = [start_pos]
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if start_pos:
+                    end_pos = pygame.mouse.get_pos()
+                    if draw_mode == "rect":
+                        rect = pygame.Rect(*start_pos, end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
+                        figures.append(("rect", rect))
+                    elif draw_mode == "circle":
+                        radius = max(abs(end_pos[0] - start_pos[0]), abs(end_pos[1] - start_pos[1])) // 2
+                        center = ((end_pos[0] + start_pos[0]) // 2, (end_pos[1] + start_pos[1]) // 2)
+                        figures.append(("circle", center, radius))
+                    elif draw_mode == "line" and len(points) > 1:
+                        figures.append(("line", list(points), mode, brush_radius)) # Сохраняем радиус
+                    elif draw_mode == "eraser" and len(points) > 1:
+                        figures.append(("line", list(points), "eraser", brush_radius)) # Сохраняем радиус
+                    elif draw_mode == "square":
+                        side = min(abs(end_pos[0] - start_pos[0]), abs(end_pos[1] - start_pos[1]))
+                        rect = pygame.Rect(start_pos[0], start_pos[1], side, side)
+                        if end_pos[0] < start_pos[0]:
+                            rect.x -= side
+                        if end_pos[1] < start_pos[1]:
+                            rect.y -= side
+                        figures.append(("rect", rect)) # Квадрат это тоже прямоугольник
+                    elif draw_mode == "trianglert":
+                        points_rt = [start_pos, (end_pos[0], start_pos[1]), end_pos] # Прямоугольный треугольник
+                        figures.append(("polygon", points_rt))
+                    elif draw_mode == "triangleeq":
+                        base = abs(end_pos[0] - start_pos[0])
+                        height = int(math.sqrt(3) / 2 * base)
+                        top_x = (start_pos[0] + end_pos[0]) // 2
+                        top_y = start_pos[1] - height if start_pos[1] > end_pos[1] else start_pos[1] + height
+                        points_eq = [start_pos, end_pos, (top_x, top_y)]
+                        figures.append(("polygon", points_eq))
+                    elif draw_mode == "rhombus":
+                        center_x = (start_pos[0] + end_pos[0]) // 2
+                        center_y = (start_pos[1] + end_pos[1]) // 2
+                        half_width = abs(end_pos[0] - start_pos[0]) // 2
+                        half_height = abs(end_pos[1] - start_pos[1]) // 2
+                        points_rhombus = [(center_x, center_y - half_height), (center_x + half_width, center_y),
+                                          (center_x, center_y + half_height), (center_x - half_width, center_y)]
+                        figures.append(("polygon", points_rhombus))
+
+                start_pos = None
+                points = []
+
+            elif event.type == pygame.MOUSEMOTION:
+                if start_pos and draw_mode in ["line", "eraser"]:
+                    points.append(event.pos)
+
+        screen.fill((255, 255, 255))
+
+        # Кнопки
+        for text, rect in buttons.items():
+            pygame.draw.rect(screen, (200, 200, 200), rect)
+            font = pygame.font.Font(None, 30)
+            text_surf = font.render(text, True, (0, 0, 0))
+            screen.blit(text_surf, (rect.x + 10, rect.y + 10))
+#фигуры
+        for figure in figures:
+            color = (0, 0, 0) # Цвет черный
+            if len(figure) > 3 and figure[2] in ['blue', 'red', 'green', 'eraser']:
+                if figure[2] == 'blue':
+                    color = (0, 0, 255)
+                elif figure[2] == 'red':
+                    color = (255, 0, 0)
+                elif figure[2] == 'green':
+                    color = (0, 255, 0)
+                elif figure[2] == 'eraser':
+                    color = (255, 255, 255)
+
+            if figure[0] == "rect":
+                pygame.draw.rect(screen, color, figure[1], 2)
+            elif figure[0] == "circle":
+                pygame.draw.circle(screen, color, figure[1], figure[2], 2)
+            elif figure[0] == "line":
+                line_points = figure[1]
+                line_brush_radius = figure[3]
+                for i in range(len(line_points) - 1):
+                    drawLineBetween(screen, line_points[i], line_points[i + 1], line_brush_radius, color)
+            elif figure[0] == "polygon":
+                pygame.draw.polygon(screen, color, figure[1], 2)
+
+        draw_color = (0, 0, 0)
+        eraser_color = (255, 255, 255)
+        if mode == 'blue':
+            draw_color = (0, 0, 255)
+        elif mode == 'red':
+            draw_color = (255, 0, 0)
+        elif mode == 'green':
+            draw_color = (0, 255, 0)
+
+        current_color = eraser_color if draw_mode == "eraser" else draw_color
+        for i in range(len(points) - 1):
+            drawLineBetween(screen, points[i], points[i + 1], brush_radius, current_color)
+
+        # размер кисти
+        font = pygame.font.Font(None, 20)
+        size_text = font.render(f"Size: {brush_radius}", True, (0, 0, 0))
+        screen.blit(size_text, (10, 110))
+
+        pygame.display.flip()
+        clock.tick(60)
+
+main()
