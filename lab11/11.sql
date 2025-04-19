@@ -1,1 +1,1 @@
-select * from phonebook
+select * from search_contacts('Bob')
